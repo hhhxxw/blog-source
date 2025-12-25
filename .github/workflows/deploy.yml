@@ -1,0 +1,35 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main  # 确保你的主分支叫 main，如果是 master 请修改这里
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install Dependencies
+      run: npm install
+    
+    - name: Build Hexo
+      run: npx hexo g
+    
+    - name: Deploy to Server via SCP
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: root
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "./public/*"
+        target: "/home/nginx/html"  # <--- 这里是关键！适配 Docker 的挂载路径
+        strip_components: 1
